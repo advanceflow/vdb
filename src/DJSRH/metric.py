@@ -136,21 +136,32 @@ def calculate_top_map(qu_B, re_B, qu_L, re_L, topk):
     :param topk:
     :return:
     """
+    # qu_B(Query Bits): (2000, 64)
+    # re_B(Retrieval Bits): (18015, 64)
+    # qu_L(Query Labels): (2000, 24)
+    # re_L(Retrieval Labels): (18015, 24)
     num_query = qu_L.shape[0]
     topkmap = 0
-    for iter in range(num_query):
-        gnd = (np.dot(qu_L[iter, :], re_L.transpose()) > 0).astype(np.float32)
-        hamm = calculate_hamming(qu_B[iter, :], re_B)
+    for i in range(num_query):
+        # gnd(ground truth): gnd 代表的是当前查询项与检索库中每个项之间是否相关的真实情况。具体而言，它是一个向量，其中每个元素表示检索库中的一个项是否至少与查询项共享一个标签（即类别）。如果共享，该元素值为 1.0（表示相关），否则为 0.0（表示不相关）。这样，gnd 向量就成为了评估检索效果（如通过计算平均精确度 mAP）时使用的真实基准。
+        # gnd: (18015, 1)
+        # qu_L[i, :]: (24,)
+        gnd = (np.dot(qu_L[i, :], re_L.transpose()) > 0).astype(np.float32)
+        hamm = calculate_hamming(qu_B[i, :], re_B)
+        # hamm: (18015,)
         ind = np.argsort(hamm)
+        # ind: (18015,)
         gnd = gnd[ind]
 
         tgnd = gnd[0:topk]
+        # tgnd: (50,)
         tsum = np.sum(tgnd)
         if tsum == 0:
             continue
-        count = np.linspace(1, tsum, tsum)
+        # count: (37,)
+        count = np.linspace(1, tsum, int(tsum))
+        # tindex: (1, 37)
         tindex = np.asarray(np.where(tgnd == 1)) + 1.0
-        topkmap_ = np.mean(count / (tindex))
-        topkmap = topkmap + topkmap_
+        topkmap += np.mean(count / (tindex))
     topkmap = topkmap / num_query
     return topkmap

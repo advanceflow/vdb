@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from metric import compress_wiki, compress, calculate_map, calculate_top_map
@@ -186,10 +185,14 @@ class Session:
                         settings.NUM_EPOCH,
                         idx + 1,
                         len(self.train_dataset) // settings.BATCH_SIZE,
-                        loss1.data[0],
-                        loss2.data[0],
-                        loss3.data[0],
-                        loss.data[0],
+                        # loss1.data[0],
+                        loss1,
+                        # loss2.data[0],
+                        loss2,
+                        # loss3.data[0],
+                        loss3,
+                        # loss.data[0],
+                        loss,
                     )
                 )
 
@@ -265,14 +268,12 @@ class Session:
         )
 
 
+
 def main():
-
     sess = Session()
-
     if settings.EVAL == True:
         sess.load_checkpoints()
         sess.eval()
-
     else:
         for epoch in range(settings.NUM_EPOCH):
             # train the Model
@@ -286,4 +287,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+     main()
