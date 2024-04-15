@@ -38,6 +38,8 @@ if DATASET == 'MIRFlickr':
     LR_TXT = 0.01
     EVAL_INTERVAL = 40
 
+
+
 if DATASET == 'NUSWIDE':
 
     LABEL_DIR = 'path/to/NUS-WIDE-TC10/nus-wide-tc10-lall.mat'
