@@ -2,7 +2,6 @@
 
 ## REQUIREMENTS
 1. pytorch>=1.0
-2. loguru
 
 ## DATASETS
 1. [CIFAR-10](https://pan.baidu.com/s/1baBOtVK2SKGRt1TKmx9ruA) Password: v1tj

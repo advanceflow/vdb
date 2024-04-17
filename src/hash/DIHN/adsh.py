@@ -13,20 +13,20 @@ from dihn import generate_code
 
 
 def train(
-        query_dataloader,
-        seen_dataloader,
-        retrieval_dataloader,
-        code_length,
-        device,
-        lr,
-        max_iter,
-        max_epoch,
-        num_samples,
-        batch_size,
-        root,
-        dataset,
-        gamma,
-        topk,
+    query_dataloader,
+    seen_dataloader,
+    retrieval_dataloader,
+    code_length,
+    device,
+    lr,
+    max_iter,
+    max_epoch,
+    num_samples,
+    batch_size,
+    root,
+    dataset,
+    gamma,
+    topk,
 ):
     """
     Training model.
@@ -69,7 +69,9 @@ def train(
         lr_scheduler.step()
 
         # Sample training data for cnn learning
-        train_dataloader, sample_index, _, _ = sample_dataloader(seen_dataloader, num_samples, num_seen, batch_size, root, dataset)
+        train_dataloader, sample_index, _, _ = sample_dataloader(
+            seen_dataloader, num_samples, num_seen, batch_size, root, dataset
+        )
 
         # Create Similarity matrix
         train_targets = train_dataloader.dataset.get_onehot_targets().to(device)
@@ -83,7 +85,11 @@ def train(
         # Training CNN model
         for epoch in range(max_epoch):
             for batch, (data, targets, index) in enumerate(train_dataloader):
-                data, targets, index = data.to(device), targets.to(device), index.to(device)
+                data, targets, index = (
+                    data.to(device),
+                    targets.to(device),
+                    index.to(device),
+                )
                 optimizer.zero_grad()
 
                 F = model(data)
@@ -100,12 +106,16 @@ def train(
 
         # Total loss
         iter_loss = calc_loss(U, B, S, code_length, sample_index, gamma)
-        logger.debug('[iter:{}/{}][loss:{:.2f}][time:{:.2f}]'.format(it + 1, max_iter, iter_loss, time.time() - iter_time))
+        logger.debug(
+            "[iter:{}/{}][loss:{:.2f}][time:{:.2f}]".format(
+                it + 1, max_iter, iter_loss, time.time() - iter_time
+            )
+        )
 
-    logger.info('Training adsh finish, time:{:.2f}'.format(time.time()-total_time))
+    logger.info("Training adsh finish, time:{:.2f}".format(time.time() - total_time))
 
     # Save checkpoints
-    torch.save(B.cpu(), os.path.join('checkpoints', 'old_B.t'))
+    torch.save(B.cpu(), os.path.join("checkpoints", "old_B.t"))
 
     # Evaluate
     query_code = generate_code(model, query_dataloader, code_length, device)
@@ -117,7 +127,7 @@ def train(
         device,
         topk,
     )
-    logger.info('[ADSH map:{:.4f}]'.format(mAP))
+    logger.info("[ADSH map:{:.4f}]".format(mAP))
 
 
 def solve_dcc(B, U, expand_U, S, code_length, gamma):
@@ -129,8 +139,8 @@ def solve_dcc(B, U, expand_U, S, code_length, gamma):
     for bit in range(code_length):
         q = Q[:, bit]
         u = U[:, bit]
-        B_prime = torch.cat((B[:, :bit], B[:, bit+1:]), dim=1)
-        U_prime = torch.cat((U[:, :bit], U[:, bit+1:]), dim=1)
+        B_prime = torch.cat((B[:, :bit], B[:, bit + 1 :]), dim=1)
+        U_prime = torch.cat((U[:, :bit], U[:, bit + 1 :]), dim=1)
 
         B[:, bit] = (q.t() - B_prime @ U_prime.t() @ u.t()).sign()
 

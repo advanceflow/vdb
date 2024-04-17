@@ -23,17 +23,17 @@ def load_data(root, num_seen, batch_size, num_workers):
         query_dataloader, seen_dataloader, unseen_dataloader, retrieval_dataloader(torch.evaluate.data.DataLoader): Data loader.
     """
     CIFAR10.init(root, num_seen)
-    query_dataset = CIFAR10('query', transform=query_transform())
-    seen_dataset = CIFAR10('seen', transform=train_transform())
-    unseen_dataset = CIFAR10('unseen', transform=train_transform())
-    retrieval_dataset = CIFAR10('retrieval', transform=train_transform())
+    query_dataset = CIFAR10("query", transform=query_transform())
+    seen_dataset = CIFAR10("seen", transform=train_transform())
+    unseen_dataset = CIFAR10("unseen", transform=train_transform())
+    retrieval_dataset = CIFAR10("retrieval", transform=train_transform())
 
     query_dataloader = DataLoader(
         query_dataset,
         batch_size=batch_size,
         pin_memory=True,
         num_workers=num_workers,
-      )
+    )
 
     seen_dataloader = DataLoader(
         seen_dataset,
@@ -66,13 +66,20 @@ class CIFAR10(Dataset):
     """
     Cifar10 dataset.
     """
+
     @staticmethod
     def init(root, num_seen):
         # Load data
-        CIFAR10.QUERY_DATA = np.load(os.path.join(root, 'cifar10_1000_query_data.npy'))
-        CIFAR10.QUERY_TARGETS = np.load(os.path.join(root, 'cifar10_1000_query_onehot_targets.npy'))
-        CIFAR10.RETRIEVAL_DATA = np.load(os.path.join(root, 'cifar10_59000_retrieval_data.npy'))
-        CIFAR10.RETRIEVAL_TARGETS = np.load(os.path.join(root, 'cifar10_59000_retrieval_onehot_targets.npy'))
+        CIFAR10.QUERY_DATA = np.load(os.path.join(root, "cifar10_1000_query_data.npy"))
+        CIFAR10.QUERY_TARGETS = np.load(
+            os.path.join(root, "cifar10_1000_query_onehot_targets.npy")
+        )
+        CIFAR10.RETRIEVAL_DATA = np.load(
+            os.path.join(root, "cifar10_59000_retrieval_data.npy")
+        )
+        CIFAR10.RETRIEVAL_TARGETS = np.load(
+            os.path.join(root, "cifar10_59000_retrieval_onehot_targets.npy")
+        )
 
         # Split seen data
         seen_index = 5900 * num_seen
@@ -81,29 +88,35 @@ class CIFAR10(Dataset):
         CIFAR10.UNSEEN_DATA = CIFAR10.RETRIEVAL_DATA[seen_index:, :]
         CIFAR10.UNSEEN_TARGETS = CIFAR10.RETRIEVAL_TARGETS[seen_index:, :]
 
-        unseen_index = np.array(list(set(range(CIFAR10.RETRIEVAL_DATA.shape[0])) - set(range(seen_index))), dtype=np.int)
+        unseen_index = np.array(
+            list(set(range(CIFAR10.RETRIEVAL_DATA.shape[0])) - set(range(seen_index))),
+            dtype=np.int,
+        )
         CIFAR10.UNSEEN_INDEX = unseen_index
 
-    def __init__(self, mode,
-                 transform=None, target_transform=None,
-                 ):
+    def __init__(
+        self,
+        mode,
+        transform=None,
+        target_transform=None,
+    ):
         self.transform = transform
         self.target_transform = target_transform
 
-        if mode == 'seen':
+        if mode == "seen":
             self.data = CIFAR10.SEEN_DATA
             self.targets = CIFAR10.SEEN_TARGETS
-        elif mode == 'unseen':
+        elif mode == "unseen":
             self.data = CIFAR10.UNSEEN_DATA
             self.targets = CIFAR10.UNSEEN_TARGETS
-        elif mode == 'query':
+        elif mode == "query":
             self.data = CIFAR10.QUERY_DATA
             self.targets = CIFAR10.QUERY_TARGETS
-        elif mode == 'retrieval':
+        elif mode == "retrieval":
             self.data = CIFAR10.RETRIEVAL_DATA
             self.targets = CIFAR10.RETRIEVAL_TARGETS
         else:
-            raise ValueError('Mode error!')
+            raise ValueError("Mode error!")
 
     def __getitem__(self, index):
         """

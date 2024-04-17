@@ -1,13 +1,14 @@
 import torch
 
 
-def mean_average_precision(query_code,
-                           database_code,
-                           query_labels,
-                           database_labels,
-                           device,
-                           topk=None,
-                           ):
+def mean_average_precision(
+    query_code,
+    database_code,
+    query_labels,
+    database_labels,
+    device,
+    topk=None,
+):
     """
     Calculate mean average precision(map).
 
@@ -30,7 +31,9 @@ def mean_average_precision(query_code,
         retrieval = (query_labels[i, :] @ database_labels.t() > 0).float()
 
         # Calculate hamming distance
-        hamming_dist = 0.5 * (database_code.shape[1] - query_code[i, :] @ database_code.t())
+        hamming_dist = 0.5 * (
+            database_code.shape[1] - query_code[i, :] @ database_code.t()
+        )
 
         # Arrange position according to hamming distance
         retrieval = retrieval[torch.argsort(hamming_dist)][:topk]

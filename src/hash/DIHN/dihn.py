@@ -11,22 +11,22 @@ from data.data_loader import sample_dataloader
 
 
 def increment(
-        query_dataloader,
-        unseen_dataloader,
-        retrieval_dataloader,
-        old_B,
-        code_length,
-        device,
-        lr,
-        max_iter,
-        max_epoch,
-        num_samples,
-        batch_size,
-        root,
-        dataset,
-        gamma,
-        mu,
-        topk,
+    query_dataloader,
+    unseen_dataloader,
+    retrieval_dataloader,
+    old_B,
+    code_length,
+    device,
+    lr,
+    max_iter,
+    max_epoch,
+    num_samples,
+    batch_size,
+    root,
+    dataset,
+    gamma,
+    mu,
+    topk,
 ):
     """
     Increment model.
@@ -75,7 +75,14 @@ def increment(
         lr_scheduler.step()
 
         # Sample training data for cnn learning
-        train_dataloader, sample_index, unseen_sample_in_unseen_index, unseen_sample_in_sample_index = sample_dataloader(retrieval_dataloader, num_samples, num_seen, batch_size, root, dataset)
+        (
+            train_dataloader,
+            sample_index,
+            unseen_sample_in_unseen_index,
+            unseen_sample_in_sample_index,
+        ) = sample_dataloader(
+            retrieval_dataloader, num_samples, num_seen, batch_size, root, dataset
+        )
 
         # Create Similarity matrix
         train_targets = train_dataloader.dataset.get_onehot_targets().to(device)
@@ -89,7 +96,11 @@ def increment(
         # Training CNN model
         for epoch in range(max_epoch):
             for batch, (data, targets, index) in enumerate(train_dataloader):
-                data, targets, index = data.to(device), targets.to(device), index.to(device)
+                data, targets, index = (
+                    data.to(device),
+                    targets.to(device),
+                    index.to(device),
+                )
                 optimizer.zero_grad()
 
                 F = model(data)
@@ -107,9 +118,13 @@ def increment(
 
         # Total loss
         iter_loss = calc_loss(U, B, S, code_length, sample_index, gamma, mu)
-        logger.debug('[iter:{}/{}][loss:{:.2f}][time:{:.2f}]'.format(it + 1, max_iter, iter_loss, time.time() - iter_time))
+        logger.debug(
+            "[iter:{}/{}][loss:{:.2f}][time:{:.2f}]".format(
+                it + 1, max_iter, iter_loss, time.time() - iter_time
+            )
+        )
 
-    logger.info('[DIHN time:{:.2f}]'.format(time.time() - total_time))
+    logger.info("[DIHN time:{:.2f}]".format(time.time() - total_time))
 
     # Evaluate
     query_code = generate_code(model, query_dataloader, code_length, device)
@@ -134,9 +149,9 @@ def solve_dcc(B, U, expand_U, S, code_length, gamma):
     for bit in range(code_length):
         p = P[:, bit]
         u = U[:, bit]
-        B_prime = torch.cat((B[:, :bit], B[:, bit+1:]), dim=1)
-        U_prime = torch.cat((U[:, :bit], U[:, bit+1:]), dim=1)
-
+        B_prime = torch.cat((B[:, :bit], B[:, bit + 1 :]), dim=1)
+        U_prime = torch.cat((U[:, :bit], U[:, bit + 1 :]), dim=1)
+        # 依据公式11更新
         B[:, bit] = (p.t() - B_prime @ U_prime.t() @ u.t()).sign()
 
     return B
@@ -149,7 +164,9 @@ def calc_loss(U, B, S, code_length, omega, gamma, mu):
     hash_loss = ((code_length * S - U @ B.t()) ** 2).sum()
     quantization_loss = ((U - B[omega, :]) ** 2).sum()
     correlation_loss = (U @ torch.ones(U.shape[1], 1, device=U.device)).sum()
-    loss = (hash_loss + gamma * quantization_loss + mu * correlation_loss) / (U.shape[0] * B.shape[0])
+    loss = (hash_loss + gamma * quantization_loss + mu * correlation_loss) / (
+        U.shape[0] * B.shape[0]
+    )
 
     return loss.item()
 
